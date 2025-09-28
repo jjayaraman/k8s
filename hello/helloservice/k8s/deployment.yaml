@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: hello-k8s
+  name: hello-k8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-k8s
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hello-k8s
+    spec:
+      containers:
+        - image: hub.docker.com/jjayaraman/hello-k8s
+          name: hello-k8s
+          resources: {}
+      imagePullSecrets:
+        - name: regcred
+
+status: {}

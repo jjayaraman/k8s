@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: mongo-crud
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/jaydb
