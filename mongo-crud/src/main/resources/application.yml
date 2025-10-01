@@ -1,7 +1,12 @@
 spring:
   application:
     name: mongo-crud
-
   data:
     mongodb:
-      uri: mongodb://localhost:27017/jaydb
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/jaydb}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

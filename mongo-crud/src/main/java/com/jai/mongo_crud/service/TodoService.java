@@ -5,6 +5,7 @@ import com.jai.mongo_crud.model.Todo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TodoService {
@@ -23,8 +24,8 @@ public class TodoService {
         return todoRepository.save(todo);
     }
 
-    public Todo findById(String id) {
-        return todoRepository.findById(id).orElse(null);
+    public Optional<Todo> findById(String id) {
+        return todoRepository.findById(id);
     }
 
     public void deleteById(String id) {
