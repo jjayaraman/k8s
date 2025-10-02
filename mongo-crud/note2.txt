@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# 1. Make sure your Docker image is pushed to a registry
+# docker build -t your-dockerhub-username/your-app-name:latest .
+# docker push your-dockerhub-username/your-app-name:latest
+
+# 2. Deploy MongoDB first
+kubectl apply -f mongodb-deployment.yaml
+
+# 3. Wait for MongoDB to be ready
+kubectl wait --for=condition=available --timeout=60s deployment/mongodb
+
+# 4. Deploy Spring Boot app
+kubectl apply -f springboot-deployment.yaml
+
+# 5. Check deployment status
+kubectl get deployments
+kubectl get pods
+kubectl get services
+
+# 6. View logs (replace pod-name with actual pod name from 'kubectl get pods')
+# kubectl logs <pod-name>
+
+# 7. Access your app
+# For LoadBalancer: kubectl get service springboot-service (check EXTERNAL-IP)
+# For NodePort: kubectl get service springboot-service (check NODE-PORT)
+# Then access: http://<node-ip>:<node-port>
+
+# Useful debugging commands:
+# kubectl describe pod <pod-name>
+# kubectl describe deployment springboot-app
+# kubectl logs <pod-name> --follow
+# kubectl exec -it <pod-name> -- /bin/sh  # Access container shell
+
+# To delete everything:
+# kubectl delete -f springboot-deployment.yaml
+# kubectl delete -f mongodb-deployment.yaml
