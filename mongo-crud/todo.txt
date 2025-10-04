@@ -1,0 +1,287 @@
+## Scaling & High Availability
+- **Horizontal Pod Autoscaler (HPA)**: Auto-scale based on CPU/memory usage
+- **Manual scaling**: Test `kubectl scale deployment` commands
+- **Pod disruption budgets**: Ensure availability during updates
+- **Multi-replica deployments**: Run multiple pod instances
+
+## Networking
+- **Services**: ClusterIP, NodePort, LoadBalancer types
+- **Ingress**: External access with path-based routing
+- **Network policies**: Control pod-to-pod communication
+- **Service mesh** (Istio/Linkerd): Traffic management, observability
+
+## Storage
+- **Persistent Volumes (PV/PVC)**: For MongoDB data persistence
+- **StatefulSets**: For MongoDB with stable network identities
+- **Storage classes**: Dynamic volume provisioning
+- **Volume snapshots**: Backup/restore testing
+
+## Configuration & Secrets
+- **ConfigMaps**: Externalize application properties
+- **Secrets**: Store MongoDB credentials, API keys
+- **Environment variables**: From ConfigMaps/Secrets
+- **Volume mounts**: Mount configs as files
+
+## Observability
+- **Liveness/Readiness probes**: Health checks
+- **Logs**: `kubectl logs`, centralized logging (EFK stack)
+- **Metrics**: Prometheus + Grafana monitoring
+- **Distributed tracing**: Jaeger/Zipkin
+
+## Updates & Rollbacks
+- **Rolling updates**: Zero-downtime deployments
+- **Blue-green deployments**: Parallel environments
+- **Canary deployments**: Gradual traffic shifting
+- **Rollback**: Revert to previous versions
+
+## Resource Management
+- **Resource requests/limits**: CPU and memory constraints
+- **Namespace quotas**: Limit resource consumption
+- **LimitRanges**: Default resource constraints
+- **Priority classes**: Pod scheduling priority
+
+## Security
+- **RBAC**: Role-based access control
+- **Pod Security Standards**: Enforce security policies
+- **Service accounts**: Pod identity and permissions
+- **Image pull secrets**: Private registry access
+
+## Resilience Testing
+- **Pod eviction**: Test self-healing
+- **Node failure**: Drain nodes, test rescheduling
+- **Chaos engineering**: Use tools like Chaos Mesh
+- **Load testing**: Stress test with tools like K6, JMeter
+
+Start with scaling, probes, and ConfigMaps/Secrets - these provide immediate practical value and are foundational for production deployments.
+
+==========
+
+Here are the steps to test Scaling & High Availability:
+
+## 1. Manual Scaling
+
+**Check current replicas:**
+```bash
+kubectl get deployment <your-deployment-name>
+```
+
+**Scale up to 3 replicas:**
+```bash
+kubectl scale deployment <your-deployment-name> --replicas=3
+```
+
+**Watch pods being created:**
+```bash
+kubectl get pods -w
+```
+
+**Test load distribution:**
+```bash
+# Get service endpoint
+kubectl get svc <your-service-name>
+
+# Make multiple requests and check which pod handles them
+for i in {1..10}; do curl http://<service-ip>:<port>/your-endpoint; done
+
+# Check logs from different pods
+kubectl logs <pod-name-1>
+kubectl logs <pod-name-2>
+```
+
+## 2. Horizontal Pod Autoscaler (HPA)
+
+**Install metrics-server (if not already installed):**
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+**Ensure your deployment has resource requests defined:**
+```yaml
+# deployment.yaml
+spec:
+  template:
+    spec:
+      containers:
+      - name: your-app
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+```
+
+**Apply the updated deployment:**
+```bash
+kubectl apply -f deployment.yaml
+```
+
+**Create HPA:**
+```bash
+kubectl autoscale deployment <your-deployment-name> \
+  --cpu-percent=50 \
+  --min=2 \
+  --max=10
+```
+
+**Or use YAML:**
+```yaml
+# hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: springboot-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: <your-deployment-name>
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+```
+
+```bash
+kubectl apply -f hpa.yaml
+```
+
+**Check HPA status:**
+```bash
+kubectl get hpa
+kubectl describe hpa <hpa-name>
+```
+
+**Generate load to trigger autoscaling:**
+```bash
+# Run a load test pod
+kubectl run -it --rm load-generator --image=busybox --restart=Never -- /bin/sh
+
+# Inside the pod, generate requests
+while true; do wget -q -O- http://<your-service-name>:<port>/your-endpoint; done
+```
+
+**Or use Apache Bench from your local machine:**
+```bash
+ab -n 10000 -c 100 http://<service-endpoint>/your-endpoint
+```
+
+**Watch autoscaling in action:**
+```bash
+# Terminal 1: Watch HPA
+kubectl get hpa -w
+
+# Terminal 2: Watch pods
+kubectl get pods -w
+
+# Terminal 3: Check metrics
+kubectl top pods
+```
+
+## 3. Pod Disruption Budget (PDB)
+
+**Create PDB:**
+```yaml
+# pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: springboot-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: <your-app-label>
+```
+
+```bash
+kubectl apply -f pdb.yaml
+```
+
+**Check PDB:**
+```bash
+kubectl get pdb
+kubectl describe pdb springboot-pdb
+```
+
+**Test PDB during rolling update:**
+```bash
+# Update your deployment (change image or config)
+kubectl set image deployment/<your-deployment-name> \
+  <container-name>=<new-image>
+
+# Watch how PDB ensures minimum pods available
+kubectl get pods -w
+```
+
+## 4. Multi-Replica Testing
+
+**Ensure multiple replicas are running:**
+```bash
+kubectl scale deployment <your-deployment-name> --replicas=3
+```
+
+**Test pod deletion (self-healing):**
+```bash
+# Delete a pod
+kubectl delete pod <pod-name>
+
+# Kubernetes automatically creates a new one
+kubectl get pods -w
+```
+
+**Test rolling restart:**
+```bash
+kubectl rollout restart deployment/<your-deployment-name>
+kubectl rollout status deployment/<your-deployment-name>
+```
+
+**Verify zero downtime during restart:**
+```bash
+# In one terminal, continuously make requests
+while true; do curl http://<service-endpoint>/health; sleep 1; done
+
+# In another terminal, perform rolling restart
+kubectl rollout restart deployment/<your-deployment-name>
+```
+
+## 5. Verification Tests
+
+**Check that load is distributed across pods:**
+```bash
+# Make requests and check different pod IPs respond
+for i in {1..20}; do
+  curl http://<service-endpoint>/your-endpoint
+done
+
+# Check access logs in all pods
+kubectl logs -l app=<your-app-label> --tail=10
+```
+
+**Verify high availability:**
+```bash
+# Start continuous traffic
+while true; do curl http://<service-endpoint>/health; sleep 0.5; done
+
+# In another terminal, kill pods one by one
+kubectl delete pod <pod-name>
+
+# Traffic should continue without errors
+```
+
+**Monitor resource usage:**
+```bash
+kubectl top nodes
+kubectl top pods
+kubectl describe node <node-name>
+```
+
+These tests will help you understand how Kubernetes handles scaling, availability, and resilience with your Spring Boot application.
+
+=========

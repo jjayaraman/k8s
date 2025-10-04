@@ -1,3 +1,9 @@
+# This file contains the Kubernetes deployment and service definitions for a MongoDB CRUD application with minimalistic setup.
+# It includes two deployments: one for the CRUD application and another for the MongoDB database.
+# The deployment for the CRUD application uses the latest version of the `jjayaraman/mongo-crud` image and exposes port 8080.
+# The deployment for the MongoDB database uses the latest version of the `mongo` image and exposes port 27017.
+# The service for the CRUD application exposes port 8080 and is accessible from outside the cluster.
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
