@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: mongo-crud
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+logging:
+  level:
+    com.jai.mongo_crud: INFO
+    org.springframework.web: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

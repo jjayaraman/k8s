@@ -3,10 +3,21 @@ spring:
     name: mongo-crud
   data:
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/jaydb}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/jaydb}
+
+logging:
+  level:
+    com.jai.mongo_crud: DEBUG
+    org.springframework.web: WARN
 
 management:
   endpoints:
     web:
       exposure:
         include: health, info
+  health:
+    mongo:
+      enabled: true
+    defaults:
+      enabled: true
+    show-details: always

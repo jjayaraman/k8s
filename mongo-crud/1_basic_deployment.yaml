@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - env:
-            - name: SPRING_DATA_MONGODB_URI
+            - name: MONGODB_URI
               value: mongodb://mongo:27017/jaydb
           image: jjayaraman/mongo-crud:latest
           name: mongo-crud
