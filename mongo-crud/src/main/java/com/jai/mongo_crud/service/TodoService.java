@@ -57,6 +57,6 @@ public class TodoService {
                     todo.completed());
             return todoRepository.save(updatedTodo);
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    }
+           }
 
 }

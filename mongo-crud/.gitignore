@@ -1,4 +1,3 @@
-HELP.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -42,3 +41,7 @@ out/
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
+
+### Helm ###
+# Ignore downloaded chart dependencies (they can be regenerated with 'helm dependency update')
+**/charts/*.tgz
