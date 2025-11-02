@@ -37,6 +37,7 @@ class TodoControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
+    @SuppressWarnings("removal")
     private TodoService todoService;
 
     @Autowired
@@ -54,14 +55,14 @@ class TodoControllerTest {
     @Test
     void testListTodos_DefaultPagination() throws Exception {
         // Given
-        Pageable pageable = PageRequest.of(0, 10);
+        @SuppressWarnings("null")
         Page<Todo> todoPage = new PageImpl<>(Arrays.asList(testTodo, testTodo2));
         when(todoService.listTodos(any(Pageable.class))).thenReturn(todoPage);
 
         // When & Then
         mockMvc.perform(get("/api/todos"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.content[0].id").value("1"))
@@ -75,8 +76,9 @@ class TodoControllerTest {
     void testListTodos_CustomPagination() throws Exception {
         // Given
         Pageable pageable = PageRequest.of(1, 5);
+        @SuppressWarnings("null")
         Page<Todo> todoPage = new PageImpl<>(Arrays.asList(testTodo2));
-        when(todoService.listTodos(any(Pageable.class))).thenReturn(todoPage);
+        when(todoService.listTodos(pageable)).thenReturn(todoPage);
 
         // When & Then
         mockMvc.perform(get("/api/todos")
@@ -97,7 +99,7 @@ class TodoControllerTest {
         // When & Then
         mockMvc.perform(get("/api/todos/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.title").value("Test Todo 1"))
                 .andExpect(jsonPath("$.userId").value(100))
@@ -120,6 +122,7 @@ class TodoControllerTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testCreate_Success() throws Exception {
         // Given
         Todo newTodo = new Todo(null, 200L, "New Todo", false);
@@ -128,10 +131,10 @@ class TodoControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/todos")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(newTodo)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").value("3"))
                 .andExpect(jsonPath("$.title").value("New Todo"))
                 .andExpect(header().string("Location", "/api/todos/3"));
@@ -140,13 +143,14 @@ class TodoControllerTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testCreate_ValidationFailure() throws Exception {
         // Given - Todo with blank title (should fail validation)
         Todo invalidTodo = new Todo(null, 200L, "", false);
 
         // When & Then
         mockMvc.perform(post("/api/todos")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(invalidTodo)))
                 .andExpect(status().isBadRequest());
 
@@ -154,6 +158,7 @@ class TodoControllerTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testUpdate_Success() throws Exception {
         // Given
         String id = "1";
@@ -163,10 +168,10 @@ class TodoControllerTest {
 
         // When & Then
         mockMvc.perform(put("/api/todos/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(updateData)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.title").value("Updated Todo"))
                 .andExpect(jsonPath("$.completed").value(true));
@@ -175,6 +180,7 @@ class TodoControllerTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testUpdate_ValidationFailure() throws Exception {
         // Given
         String id = "1";
@@ -182,7 +188,7 @@ class TodoControllerTest {
 
         // When & Then
         mockMvc.perform(put("/api/todos/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(invalidTodo)))
                 .andExpect(status().isBadRequest());
 

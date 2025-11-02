@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,6 +62,7 @@ class TodoServiceTest {
     void testListTodosWithPagination() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
+        @SuppressWarnings("null")
         Page<Todo> todoPage = new PageImpl<>(Arrays.asList(testTodo, testTodo2));
         when(todoRepository.findAll(pageable)).thenReturn(todoPage);
 
@@ -154,6 +154,7 @@ class TodoServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testUpdate_Success() {
         // Given
         String id = "1";
@@ -177,6 +178,7 @@ class TodoServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testUpdate_NotFound() {
         // Given
         String id = "999";
